@@ -1,0 +1,163 @@
+body {
+    height: 100vh;
+    overflow-x: hidden; 
+    background-image: linear-gradient(30deg, #343a40, #121618);
+}
+navbar-toggler{
+   display: flex;
+}
+nav{
+    display: flex;
+}
+#menuButton{
+    margin-right: 30px;
+}
+#head-balance{
+    color: aqua;
+    position: relative;
+    width: max-content;
+    text-align: right;
+}   
+
+.side-menu {
+    position: fixed;
+    top: 0;
+    left: -250px; /* Hidden by default */
+    width: 250px;
+    height: 100%;
+    z-index: 10;
+    background-color: #343a40;
+    transition: left 0.3s ease;
+}
+.side-menu.show{
+    left: 0; /* Show menu */
+}
+li.nav-item{
+    margin: 5px 0 5px 0;
+}
+.text-white , .btn{
+    display: inline;
+}
+.text-white{ 
+    margin-right: 30px;
+}
+
+.main-heading{
+    font-size: 2.5rem;
+    font-weight: 600;
+    color:#d6e2ee
+}
+
+.content{
+    padding-left: 5vw;
+    padding-top: 10px;
+    color: #d6e2ee;
+}
+
+.gen-info{
+    margin-top: 40px;
+    width: 65%;
+    display: grid;
+    gap: 10px;
+    grid-template-columns: 1fr 1fr;
+    justify-items: start;
+    
+}
+
+.info-item{
+    background-color: #3c4650;
+    border-radius: 5px;
+    border: solid 2px;
+    border-color: #9a9da1;
+    padding: 15px;
+    color: #d6e2ee;
+    width: 90%;
+    height: max-content;
+}
+.heading{
+    font-size: 1.5rem;
+    font-weight: 600;
+}
+.number{
+    font-size: 1.5rem;
+}
+
+.order-history{
+    margin-top: 50px;
+}
+#order-heading{
+    font-size: 2rem;
+}
+
+.flex-container{
+    margin-top: 15px;
+    display: flex;
+    justify-content: space-between;
+}
+.dropdown{
+    width: fit-content;
+    border: solid 2px;
+    border-radius: 5px;
+    background-color: #545e68;
+    border-color: #5f97c9
+
+}
+#search-box{
+    width: fit-content;
+    background-color: #545e68;
+    border-radius: 5px;
+    border: solid 2px;
+    border-color: #5f97c9;
+    padding: 5px;
+    color: whitesmoke;
+    margin-right: 10vw
+}
+input::placeholder {
+    color: #feffff; /* Set placeholder text color */
+    font-style: italic; /* Optional: Make it italic */
+}
+table {
+    width: 85vw;
+    margin-top: 5vh;
+    text-align: center;
+    background-color: #3c4650;
+}
+table thead {
+    border: 2px solid #dee2e6;
+    border-radius: 5px;
+}
+table tbody tr {
+    border-bottom: 1px solid #dee2e6;
+}
+table tbody td {
+    border: none; 
+}
+
+.pagination .page-link {
+    border-radius: 5px;
+}
+nav[aria-label="Page navigation"]{
+  position: relative;
+  width: fit-content;
+  display: flex;
+  justify-content: end;
+}
+
+@media(min-width: 992px){
+    .navbar-expand-lg .navbar-toggler{
+        display: inline;
+    }
+}
+
+
+.header_wrap{
+    min-height: 100%;
+    
+
+}
+
+.makeitsticky{
+    position: sticky !important;
+    top: 20px !important;
+
+}
