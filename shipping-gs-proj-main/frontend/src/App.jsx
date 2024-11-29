@@ -31,7 +31,7 @@ import FedexOrderListinternational from "./pages/user/FedexOrderListinternationa
 import UserProfile from "./pages/user/UserProfile";
 import TopBar from "./components/layout/TopBar";
 import AddAdmin from "./pages/admin/AddAdmin";
-import AdminOrderDetailsUps from "./pages/admin/AdminOrderDetailsUPS";
+import AdminOrderDetailsUps from "./pages/admin/AdminOrderDetailsUPS.jsx";
 import AdmimOrderDetailsFedex from "./pages/admin/AdminOrderDetailsFedex";
 
 //Admin
