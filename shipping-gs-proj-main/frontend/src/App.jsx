@@ -26,7 +26,7 @@ import DHLOrderDetails from "./pages/user/DHLOrderDetails.jsx";
 // import FedexOrderDetailsInternational from "./pages/user/FedexOrderDetailsInternational";
 import OrderDetails from "./pages/user/OrderDetails";
 
-import FedexOrderListinternational from "./pages/user/FedexOrderListInternational";
+import FedexOrderListinternational from "./pages/user/FedexOrderListinternational";
 
 import UserProfile from "./pages/user/UserProfile";
 import TopBar from "./components/layout/TopBar";

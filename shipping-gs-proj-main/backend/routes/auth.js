@@ -6,12 +6,16 @@ const { authorize, authMiddleware } = require("../middleware/authMiddleware");
 
 const router = express.Router();
 
-
 router.post("/signup", async (req, res) => {
-  const { name, username, password, role = "user" } = req.body; // Default to 'user'
+  if (!name || !username || !password || !email) {
+    return res
+      .status(400)
+      .json({ success: false, message: "Please fill in all fields" });
+  }
+  const { name, username, password, email, role = "user" } = req.body; // Default to 'user'
 
   try {
-    const userExists = await User.findOne({ username });
+    const userExists = await User.findOne({ $or: [{ username }, { email }] });
     if (userExists) {
       return res
         .status(400)
@@ -19,7 +23,13 @@ router.post("/signup", async (req, res) => {
     }
 
     const hashedPassword = await bcrypt.hash(password, 10);
-    const user = new User({ name, username, password: hashedPassword, role });
+    const user = new User({
+      name,
+      username,
+      email,
+      password: hashedPassword,
+      role,
+    });
     await user.save();
 
     res
@@ -29,7 +39,6 @@ router.post("/signup", async (req, res) => {
     res.status(500).json({ success: false, message: "Server error" });
   }
 });
-
 
 router.post("/login", async (req, res) => {
   const { username, password } = req.body;
@@ -76,23 +85,37 @@ router.get("/getusers", async function (req, res) {
   }
 });
 
-router.post("/addadmin", authMiddleware, authorize("admin"), async (req, res) => {
-  const { name, username, password } = req.body;
+router.post(
+  "/addadmin",
+  authMiddleware,
+  authorize("admin"),
+  async (req, res) => {
+    const { name, username, password } = req.body;
 
-  try {
-    const userExists = await User.findOne({ username });
-    if (userExists) {
-      return res.status(400).json({ success: false, message: "User already exists" });
+    try {
+      const userExists = await User.findOne({ username });
+      if (userExists) {
+        return res
+          .status(400)
+          .json({ success: false, message: "User already exists" });
+      }
+
+      const hashedPassword = await bcrypt.hash(password, 10);
+      const admin = new User({
+        name,
+        username,
+        password: hashedPassword,
+        role: "admin",
+      });
+      await admin.save();
+
+      res
+        .status(201)
+        .json({ success: true, message: "Admin created successfully" });
+    } catch (error) {
+      res.status(500).json({ success: false, message: "Server error" });
     }
-
-    const hashedPassword = await bcrypt.hash(password, 10);
-    const admin = new User({ name, username, password: hashedPassword, role: "admin" });
-    await admin.save();
-
-    res.status(201).json({ success: true, message: "Admin created successfully" });
-  } catch (error) {
-    res.status(500).json({ success: false, message: "Server error" });
   }
-});
+);
 
 module.exports = router;

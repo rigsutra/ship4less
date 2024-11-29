@@ -26,7 +26,7 @@ const OrderFormDHL = () => {
 
   return (
     <div>
-      <TopBar title={"DHL"} />
+      <TopBar title={"DHL International"} />
       <Box p={6} maxW="1200px" mx="auto" className="h-screen">
         <Box display="flex" justifyContent="center" mb={4}>
           <Button

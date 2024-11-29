@@ -5,13 +5,20 @@ const BalanceSchema = new mongoose.Schema({
   amount: { type: Number, default: 0 },
 });
 
-const TransactionSchema = new mongoose.Schema({
-  userId: { type: mongoose.Schema.Types.ObjectId, ref: "User", required: true },
-  amount: { type: Number, required: true },
-  status: { type: String, required: true }, // e.g., "Pending", "Success", "Failed"
-  paymentId: { type: String, required: true },
-  createdAt: { type: Date, default: Date.now },
-});
+const TransactionSchema = new mongoose.Schema(
+  {
+    userId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "User",
+      required: true,
+    },
+    amount: { type: Number, required: true },
+    status: { type: String, required: true }, // e.g., "Pending", "Success", "Failed"
+    paymentId: { type: String, required: true },
+    createdAt: { type: Date, default: Date.now },
+  },
+  { timestamps: true }
+);
 
 module.exports = {
   Balance: mongoose.model("Balance", BalanceSchema),

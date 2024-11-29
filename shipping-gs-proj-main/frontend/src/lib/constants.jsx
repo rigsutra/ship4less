@@ -17,7 +17,7 @@ export const navLinks = [
   {
     url: "/createDHLOrders",
     icon: <ShoppingCart />,
-    label: "DHL",
+    label: "DHL International",
     role: "user", // Only visible to regular users
   },
   {
