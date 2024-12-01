@@ -27,9 +27,9 @@ import DHLOrderDetails from "./pages/user/DHLOrderDetails.jsx";
 import OrderDetails from "./pages/user/OrderDetails";
 
 import FedexOrderListinternational from "./pages/user/FedexOrderListinternational";
-
+import ForgotPassword from "./pages/user/forgetPassword.jsx";
 import UserProfile from "./pages/user/UserProfile";
-import TopBar from "./components/layout/TopBar";
+// import TopBar from "./components/layout/TopBar";
 import AddAdmin from "./pages/admin/AddAdmin";
 import AdminOrderDetailsUps from "./pages/admin/AdminOrderDetailsUPS.jsx";
 import AdmimOrderDetailsFedex from "./pages/admin/AdminOrderDetailsFedex";
@@ -61,6 +61,7 @@ function App() {
                 path="/login"
                 element={!user ? <Login /> : <Navigate to="/" replace />}
               />
+              <Route path="/forgot_password" element={<ForgotPassword />} />
 
               {/* Admin Protected Routes */}
               <Route element={<AdminProtectRoute />}>
@@ -82,6 +83,7 @@ function App() {
               {/* User Protected Routes */}
               <Route element={<ProtectRoute />}>
                 <Route path="/" element={<Home />} />
+
                 <Route path="/FAQs" element={<FAQs />} />
                 <Route path="/createOrders" element={<UPScreateOrder />} />
                 <Route path="/createDHLOrders" element={<DHLCreateOrder />} />

@@ -7,14 +7,12 @@ const BalanceSchema = new mongoose.Schema({
 
 const TransactionSchema = new mongoose.Schema(
   {
-    userId: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: "User",
-      required: true,
-    },
+    userId: { type: mongoose.Schema.Types.ObjectId, required: true },
+    paymentId: { type: String, required: true, unique: true },
     amount: { type: Number, required: true },
-    status: { type: String, required: true }, // e.g., "Pending", "Success", "Failed"
-    paymentId: { type: String, required: true },
+    currency: { type: String, required: true }, // Add the required currency field
+    amountPaid: { type: Number, default: 0 },
+    status: { type: String, required: true },
     createdAt: { type: Date, default: Date.now },
   },
   { timestamps: true }

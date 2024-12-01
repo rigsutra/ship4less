@@ -21,9 +21,9 @@ const Wallet = () => {
   const location = useLocation();
 
   const allowedCurrencies = [
-    { name: "USDT (TRC20)", code: "USDT_TRX" },
-    { name: "USDT (BEP20)", code: "USDT_BEP" },
-    { name: "USDT (BSC20)", code: "USDT_BSC" },
+    { name: "USDT (TRC20)", code: "TRX" },
+    { name: "USDT (BEP20)", code: "BEP" },
+    { name: "USDT (BSC20)", code: "BSC" },
     { name: "BTC", code: "BTC" },
     { name: "LTC", code: "LTC" },
     { name: "ETH", code: "ETH" },
@@ -57,12 +57,9 @@ const Wallet = () => {
   const fetchBalance = async () => {
     try {
       setLoadingBalance(true);
-      const response = await axios.get(
-        `${baseUrl}/api/balance?currency=${currency}`,
-        {
-          headers: { Authorization: `Bearer ${token}` },
-        }
-      );
+      const response = await axios.get(`${baseUrl}/api/balance`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
       setBalance(response.data.balance);
     } catch (error) {
       console.error("Error fetching balance:", error);
@@ -155,9 +152,7 @@ const Wallet = () => {
             ) : (
               <div className="text-lg font-bold text-gray-800 text-center">
                 Current Balance:{" "}
-                <span className="font-semibold text-green-600">
-                  {balance} {currency}
-                </span>
+                <span className="font-semibold text-green-600">${balance}</span>
               </div>
             )}
           </div>

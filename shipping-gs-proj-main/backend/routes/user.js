@@ -2,6 +2,9 @@ const express = require("express");
 const bcrypt = require("bcryptjs");
 const User = require("../models/User");
 const { authMiddleware } = require("../middleware/authMiddleware");
+const sendEmail = require("../utils/mailsend");
+const crypto = require("crypto");
+const jwt = require("jsonwebtoken");
 
 const router = express.Router();
 
@@ -72,6 +75,75 @@ router.post("/updatePassword", authMiddleware, async (req, res) => {
   } catch (error) {
     console.error("Error changing password:", error);
     res.status(500).json({ success: false, message: "Server error" });
+  }
+});
+
+router.patch("/resetpassword/:resetToken", async (req, res) => {
+  const resetPasswordToken = crypto
+    .createHash("sha256")
+    .update(req.params.resetToken)
+    .digest("hex");
+  const user = await User.findOne({
+    passwordResetToken: resetPasswordToken,
+    passwordResetExpires: { $gt: Date.now() },
+  });
+  if (!user) {
+    return res
+      .status(400)
+      .json({ success: false, message: "Invalid token or token has expired" });
+  }
+  const hashedPassword = await bcrypt.hash(req.body.password, 10);
+  user.password = hashedPassword;
+  user.confirmPassword = hashedPassword;
+  user.passwordResetToken = undefined;
+  user.passwordResetExpires = undefined;
+  user.passwordChangeAt = Date.now();
+  await user.save();
+  res.status(200).json({ success: true, message: "Password reset successful" });
+});
+
+router.post("/forgotPassword", async (req, res) => {
+  const { email } = req.body;
+  // Find the user by email
+  const user = await User.findOne({ email: email });
+  // If user does not exist, return error
+  if (!user) {
+    return res.status(404).json({ success: false, message: "User not found" });
+  }
+
+  // Generate a password reset token
+  const resetToken = await user.createPasswordResetToken();
+
+  // Save the user
+  await user.save();
+
+  // Send the reset token to the user's email
+  const resetUrl = `${req.protocol}://${req.get(
+    "host"
+  )}/api/resetpassword/${resetToken}`;
+  const message = `we have recived a password reset request. The link to reset your password is as follows: \n\n ${resetUrl}
+  /n/n This link is only valid for 10 minutes. \n\n If you did not request a password reset, please ignore this email.`;
+
+  try {
+    await sendEmail({
+      email: user.email,
+      subject: "Password Change request recived",
+      message: message,
+    });
+
+    res.status(200).json({
+      success: true,
+      message: "Password reset Link send to the user Email",
+    });
+  } catch (error) {
+    user.passwordResetToken = undefined;
+    user.passwordResetExpires = undefined;
+    await user.save();
+
+    return res.status(500).json({
+      success: false,
+      message: "Error sending email, Please try again later",
+    });
   }
 });
 

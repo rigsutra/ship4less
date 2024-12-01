@@ -9,7 +9,6 @@ import {
   Box,
   Button,
   Checkbox,
-  Container,
   CssBaseline,
   FormControlLabel,
   Paper,
@@ -20,7 +19,9 @@ import {
 } from "@mui/material";
 import { setToken, userExists } from "../../redux/reducer/auth";
 import { useNavigate } from "react-router-dom";
+
 const baseUrl = import.meta.env.VITE_BASE_URL;
+
 // Custom hook for input validation
 const useInputValidation = (initialValue, validator) => {
   const [value, setValue] = useState(initialValue);
@@ -44,12 +45,12 @@ function Login() {
   const [isLogin, setIsLogin] = useState(true);
   const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate();
-  // const dispatch = useDispatch();
 
   // Input hooks
   const name = useInputValidation("");
   const username = useInputValidation("");
   const password = useInputValidation("");
+  const email = useInputValidation("");
 
   // Toggle login/signup form
   const toggleLogin = () => setIsLogin((prev) => !prev);
@@ -71,13 +72,14 @@ function Login() {
       );
 
       const { success, user, message, role } = response.data;
-      console.log("respnse " , response)
       if (success) {
         dispatch(userExists(user));
         toast.success(message, { id: toastId });
-        localStorage.setItem("ship_token" , JSON.stringify(response?.data?.token));
-        dispatch(setToken(response?.data?.token))
-
+        localStorage.setItem(
+          "ship_token",
+          JSON.stringify(response?.data?.token)
+        );
+        dispatch(setToken(response?.data?.token));
         navigate(role === "admin" ? "/admin-dashboard" : "/");
       }
     } catch (error) {
@@ -94,7 +96,7 @@ function Login() {
     e.preventDefault();
     const toastId = toast.loading("Signing Up...");
     setIsLoading(true);
-  
+
     try {
       const response = await axios.post(
         `${baseUrl}/api/signup`,
@@ -102,6 +104,7 @@ function Login() {
           name: name.value,
           username: username.value,
           password: password.value,
+          email: email.value,
           role: "user", // Assigning a default role
         },
         {
@@ -109,7 +112,7 @@ function Login() {
           headers: { "Content-Type": "application/json" },
         }
       );
-  
+
       const { success, message } = response.data;
       if (success) {
         toast.success(message, { id: toastId });
@@ -125,7 +128,6 @@ function Login() {
       setIsLoading(false);
     }
   };
-  
 
   return (
     <ThemeProvider theme={defaultTheme}>
@@ -168,7 +170,6 @@ function Login() {
               sx={{ mt: 1 }}
               onSubmit={isLogin ? handleLogin : handleSignUp}
             >
-              {/* Show name field only during signup */}
               {!isLogin && (
                 <TextField
                   margin="normal"
@@ -196,6 +197,23 @@ function Login() {
               {username.error && (
                 <Typography color="error" variant="caption">
                   {username.error}
+                </Typography>
+              )}
+              {!isLogin && (
+                <TextField
+                  margin="normal"
+                  required
+                  fullWidth
+                  id="email"
+                  label="Email"
+                  name="email"
+                  value={email.value}
+                  onChange={email.changeHandler}
+                />
+              )}
+              {!isLogin && email.error && (
+                <Typography color="error" variant="caption">
+                  {email.error}
                 </Typography>
               )}
               <TextField
@@ -230,6 +248,16 @@ function Login() {
               >
                 {isLogin ? "Sign In" : "Sign Up"}
               </Button>
+              {isLogin && (
+                <Button
+                  fullWidth
+                  variant="text"
+                  onClick={() => navigate("/forgot_password")}
+                  sx={{ mb: 2 }}
+                >
+                  Forgot Password?
+                </Button>
+              )}
               <Grid container>
                 <Grid item>
                   <Link
@@ -239,7 +267,7 @@ function Login() {
                   >
                     {isLogin
                       ? "Don't have an account? Sign Up"
-                      : "Already have an account? Sign in"}
+                      : "Already have an account? Sign In"}
                   </Link>
                 </Grid>
               </Grid>

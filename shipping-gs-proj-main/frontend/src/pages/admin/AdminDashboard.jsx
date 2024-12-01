@@ -66,7 +66,6 @@ function AdminDashboard() {
         //     0
         //   )
         // );
-<<<<<<< HEAD
         console.log(FedexDomesticordersData);
         let fedexDomesticRevenue = 0;
         let upsRevenue = 0;
@@ -79,16 +78,6 @@ function AdminDashboard() {
             },
             0
           );
-=======
-        console.log(FedexDomesticordersData)
-        let fedexDomesticRevenue=0;
-        let upsRevenue = 0;
-        if (FedexDomesticordersData.length > 0) {
-          fedexDomesticRevenue = FedexDomesticordersData.reduce((acc, order) => {
-            const numericPrice = parseFloat(order.price.replace("$", "")) || 0; // Remove "$" and parse as a number
-            return acc + numericPrice;
-          }, 0);
->>>>>>> 583e022de13f3ee9d58c7ac20cfba44c8bc88c2f
         }
         if (uspsData.orders.length > 0) {
           upsRevenue = uspsData.orders.reduce(
@@ -106,15 +95,9 @@ function AdminDashboard() {
   }, [token]);
 
   return (
-<<<<<<< HEAD
     <div>
       <TopBar title={"Dashboard"} />
       <Box bg="gray.50" minH="100vh" p={4}>
-=======
-    <div >
-      <TopBar title={"Dashboard"} />
-      <Box  bg="gray.50" minH="100vh" p={4}>
->>>>>>> 583e022de13f3ee9d58c7ac20cfba44c8bc88c2f
         <VStack spacing={6} align="stretch">
           {/* Metrics Section */}
           <SimpleGrid columns={[1, 2, 3]} spacing={6}>

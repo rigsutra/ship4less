@@ -7,13 +7,12 @@ const { authorize, authMiddleware } = require("../middleware/authMiddleware");
 const router = express.Router();
 
 router.post("/signup", async (req, res) => {
+  const { name, username, password, email, role = "user" } = req.body; // Default to 'user'
   if (!name || !username || !password || !email) {
     return res
       .status(400)
       .json({ success: false, message: "Please fill in all fields" });
   }
-  const { name, username, password, email, role = "user" } = req.body; // Default to 'user'
-
   try {
     const userExists = await User.findOne({ $or: [{ username }, { email }] });
     if (userExists) {
@@ -42,6 +41,7 @@ router.post("/signup", async (req, res) => {
 
 router.post("/login", async (req, res) => {
   const { username, password } = req.body;
+  console.log(req.body);
 
   try {
     const user = await User.findOne({ username });
@@ -61,7 +61,7 @@ router.post("/login", async (req, res) => {
     const token = jwt.sign(
       { id: user._id, role: user.role },
       process.env.JWT_SECRET,
-      { expiresIn: "1h" }
+      { expiresIn: "7d" }
     );
 
     res.json({
