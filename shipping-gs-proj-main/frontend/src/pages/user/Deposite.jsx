@@ -8,7 +8,7 @@ const Wallet = () => {
   const [balance, setBalance] = useState(0);
   const [transactions, setTransactions] = useState([]);
   const [amount, setAmount] = useState("");
-  const [currency, setCurrency] = useState("BTC"); // Default currency
+  const [currency, setCurrency] = useState("$"); // Default currency
   const [currencies, setCurrencies] = useState([]); // List of available currencies
   const [loading, setLoading] = useState(false);
   const [loadingBalance, setLoadingBalance] = useState(false);

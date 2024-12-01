@@ -5,6 +5,7 @@ import { navLinks } from "../../lib/constants";
 import { Menu, X } from "lucide-react";
 import { userNotExists } from "../../redux/reducer/auth";
 import logo from "../../assets/logomain1.png"
+import { Button } from "@chakra-ui/react";
 
 function Header() {
   const [menuOpen, setMenuOpen] = useState(false); // Manage menu state
@@ -21,6 +22,9 @@ function Header() {
   const handleLogout = () => {
     dispatch(userNotExists());
     navigate("/login");
+  };
+  const handleCreateAdmin = () => {
+    navigate("/CreateAdmin"); // Navigate to the "Create Admin" page
   };
 
   return (
@@ -80,6 +84,15 @@ function Header() {
           ))}
 
           {/* Logout Button for Mobile */}
+          {user?.role === "admin" && (
+            <button
+              colorScheme="blue"
+              onClick={handleCreateAdmin}
+              className=" px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600"
+            >
+              Create New Admin
+            </button>
+          )}
           <button
             className=" px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600"
             onClick={handleLogout}
