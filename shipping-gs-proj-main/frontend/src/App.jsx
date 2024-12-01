@@ -27,12 +27,12 @@ import DHLOrderDetails from "./pages/user/DHLOrderDetails.jsx";
 import OrderDetails from "./pages/user/OrderDetails";
 
 import FedexOrderListinternational from "./pages/user/FedexOrderListinternational";
-
 import UserProfile from "./pages/user/UserProfile";
 import TopBar from "./components/layout/TopBar";
 import AddAdmin from "./pages/admin/AddAdmin";
 import AdminOrderDetailsUps from "./pages/admin/AdminOrderDetailsUPS.jsx";
 import AdmimOrderDetailsFedex from "./pages/admin/AdminOrderDetailsFedex";
+import AdminUserDetails from "./pages/admin/AdminUserDetails.jsx"
 
 //Admin
 const AdminDashboard = lazy(() => import("./pages/admin/AdminDashboard"));
@@ -77,6 +77,7 @@ function App() {
                   element={<AdmimOrderDetailsFedex />}
                 />
                 <Route path="/CreateAdmin" element={<AddAdmin />}></Route>
+                <Route path="/userList" element={<AdminUserDetails />}></Route>
               </Route>
 
               {/* User Protected Routes */}

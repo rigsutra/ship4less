@@ -75,4 +75,15 @@ router.post("/updatePassword", authMiddleware, async (req, res) => {
   }
 });
 
+router.post("/getusers", authMiddleware, async (req, res) => {
+  try {
+    const users = await User.find({ role: "user" }).select("-password"); // Exclude password field
+    res.status(200).json(users);
+  } catch (error) {
+    console.error("Error fetching users:", error.message);
+    res.status(500).json({ message: "Failed to fetch users." });
+  }
+})
+
+
 module.exports = router;

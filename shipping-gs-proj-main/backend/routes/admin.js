@@ -5,6 +5,8 @@ const FedexOrderInternational = require("../models/FedexOrderInternational");
 const FedexOrderDomestic = require("../models/FedexOrderDomestic");
 const Order = require("../models/Order");
 const DHLOrder = require("../models/DHLOrderModel");
+const DHLOrderModel = require("../models/DHLOrderModel");
+
 
 const router = express.Router();
 
@@ -321,6 +323,96 @@ router.put("/dhlOrderStatus/:id", authMiddleware, async (req, res) => {
   } catch (error) {
     console.error("Error updating DHL order status:", error);
     res.status(500).json({ message: "Server error" });
+  }
+});
+
+
+
+router.get("/getAllOrdersdomestic/:userId", authMiddleware, async (req, res) => {
+  try {
+    // console.log(req.userId);
+    const orders = await FedexOrderDomestic.find({ userId: req.params.userId }) // Filter by userId
+      .populate(
+        "senderAddress receiverAddress pickAddress",
+        "name street street2 city state zip phone email country"
+      )
+      .populate("shipment")
+      .sort("-createdAt");
+      const totalOrderCount = await FedexOrderDomestic.countDocuments({ userId: req.params.userId });
+    res.json({orders,totalOrderCount});
+  } catch (error) {
+    console.error("Error fetching orders:", error);
+    res.status(500).json({ message: "Server error" });
+  }
+});
+router.get("/getAllOrdersinternational/:userId", authMiddleware, async (req, res) => {
+  try {
+    // console.log(req.userId);
+    const orders = await FedexOrderInternational.find({ userId: req.params.userId }) // Filter by userId
+      .populate(
+        "senderAddress receiverAddress pickAddress",
+        "name street street2 city state zip phone email country"
+      )
+      .populate("shipment")
+      .sort("-createdAt");
+      const totalOrderCount = await FedexOrderInternational.countDocuments({ userId: req.params.userId });
+    res.json({orders,totalOrderCount});
+  } catch (error) {
+    console.error("Error fetching orders:", error);
+    res.status(500).json({ message: "Server error" });
+  }
+});
+
+
+router.get("/upsAllorders/:userId", authMiddleware, async (req, res) => {
+  try {
+    // Fetch all UPS orders from the database
+    const upsOrders = await Order.find({ userId: req.params.userId }); // Assuming you're using MongoDB and Mongoose
+
+    if (!upsOrders) {
+      return res.status(404).json({ message: "No UPS orders found" });
+    }
+
+    // Send the array of orders in the response
+    const totalOrderCount = await Order.countDocuments({ userId: req.params.userId });
+    // res.json({orders,totalOrderCount});
+    res.status(200).json({
+      success: true,
+      orders: upsOrders, // All UPS orders in the array
+      totalOrderCount:totalOrderCount,
+      // type: "UPS Orders", // Additional info (optional)
+    });
+  } catch (error) {
+    console.error("Error fetching UPS orders:", error);
+    res.status(500).json({
+      message: "An error occurred while fetching UPS orders.",
+      error: error.message,
+    });
+  }
+});
+router.get("/dhlAllorders/:userId", authMiddleware, async (req, res) => {
+  try {
+    // Fetch all UPS orders from the database
+    const dhlOrders = await DHLOrderModel.find({ userId: req.params.userId }); // Assuming you're using MongoDB and Mongoose
+
+    if (!dhlOrders) {
+      return res.status(404).json({ message: "No DHL orders found" });
+    }
+
+    // Send the array of orders in the response
+    const totalOrderCount = await DHLOrderModel.countDocuments({ userId: req.params.userId });
+    // res.json({orders,totalOrderCount});
+    res.status(200).json({
+      success: true,
+      orders: dhlOrders, // All UPS orders in the array
+      totalOrderCount:totalOrderCount,
+    });
+  } catch (error) {
+    console.error("Error fetching UPS orders:", error);
+    res.status(500).json({
+      message: "An error occurred while fetching UPS orders.",
+      error: error.message,
+    });
   }
 });
 
