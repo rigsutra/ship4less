@@ -8,13 +8,10 @@ import {
   StatNumber,
   VStack,
   HStack,
-  Avatar,
-  Button,
   Heading,
   Input,
 } from "@chakra-ui/react";
 import { useNavigate } from "react-router-dom";
-import { UserPen } from "lucide-react";
 import axios from "axios";
 import TopBar from "../../components/layout/TopBar";
 import { useSelector } from "react-redux";
@@ -177,6 +174,10 @@ function AdminDashboard() {
     user.name.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
+  const handleUserList = () => {
+    navigate("/userList"); // Navigate to the "Create Admin" page
+  };
+
   return (
     <div>
       <TopBar title={"Dashboard"} />
@@ -190,7 +191,6 @@ function AdminDashboard() {
               borderRadius="lg"
               shadow="md"
               borderWidth="1px"
-              borderColor="gray.200"
             >
               <Stat>
                 <StatLabel fontWeight="bold" color="gray.600">
@@ -205,7 +205,6 @@ function AdminDashboard() {
               borderRadius="lg"
               shadow="md"
               borderWidth="1px"
-              borderColor="gray.200"
             >
               <Stat>
                 <StatLabel fontWeight="bold" color="gray.600">
@@ -222,7 +221,6 @@ function AdminDashboard() {
               borderRadius="lg"
               shadow="md"
               borderWidth="1px"
-              borderColor="gray.200"
             >
               <Stat>
                 <StatLabel fontWeight="bold" color="gray.600">
@@ -233,96 +231,74 @@ function AdminDashboard() {
             </Box>
           </SimpleGrid>
 
-          {/* Billing Section: Daily, Monthly, Yearly Earnings */}
-          <div className="flex justify-around items-start">
-            <div>
-              <Box bg="white" p={6} borderRadius="lg" shadow="md">
-                <Heading size="md" mb={4}>
-                  Billing
-                </Heading>
-                <SimpleGrid columns={[1, 3]} spacing={6}>
-                  <Box bg="white" p={4} borderRadius="lg" shadow="md">
-                    <Stat>
-                      <StatLabel>Daily Earnings</StatLabel>
-                      <StatNumber>${dailyEarnings.toFixed(2)}</StatNumber>
-                    </Stat>
-                  </Box>
-                  <Box bg="white" p={4} borderRadius="lg" shadow="md">
-                    <Stat>
-                      <StatLabel>Monthly Earnings</StatLabel>
-                      <StatNumber>${monthlyEarnings.toFixed(2)}</StatNumber>
-                    </Stat>
-                  </Box>
-                  <Box bg="white" p={4} borderRadius="lg" shadow="md">
-                    <Stat>
-                      <StatLabel>Yearly Earnings</StatLabel>
-                      <StatNumber>${yearlyEarnings.toFixed(2)}</StatNumber>
-                    </Stat>
-                  </Box>
-                </SimpleGrid>
-              </Box>
-            </div>
+          {/* Responsive Section: Billing and User List */}
+          <SimpleGrid columns={{ base: 1, lg: 2 }} spacing={6}>
+            {/* Billing Section */}
+            <Box bg="white" p={6} borderRadius="lg" shadow="md">
+              <Heading size="md" mb={4}>
+                Billing
+              </Heading>
+              <SimpleGrid columns={[1, 3]} spacing={6}>
+                <Box bg="gray.50" p={4} borderRadius="lg" shadow="md">
+                  <Stat>
+                    <StatLabel>Daily Earnings</StatLabel>
+                    <StatNumber>${dailyEarnings.toFixed(2)}</StatNumber>
+                  </Stat>
+                </Box>
+                <Box bg="gray.50" p={4} borderRadius="lg" shadow="md">
+                  <Stat>
+                    <StatLabel>Monthly Earnings</StatLabel>
+                    <StatNumber>${monthlyEarnings.toFixed(2)}</StatNumber>
+                  </Stat>
+                </Box>
+                <Box bg="gray.50" p={4} borderRadius="lg" shadow="md">
+                  <Stat>
+                    <StatLabel>Yearly Earnings</StatLabel>
+                    <StatNumber>${yearlyEarnings.toFixed(2)}</StatNumber>
+                  </Stat>
+                </Box>
+              </SimpleGrid>
+            </Box>
 
-            {/* Search Section */}
-            <div className="max-w-[50%] w-full ">
-              <Box
-                bg="white"
-                p={6}
-                borderRadius="lg"
-                shadow="md"
-                className="mb-[10px]"
+            {/* User List Section */}
+            <Box bg="white" p={6} borderRadius="lg" shadow="md">
+              <Heading size="md" mb={4}>
+                User List
+              </Heading>
+              <Input
+                placeholder="Search users by name..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                mb={4}
+              />
+              <VStack
+                spacing={4}
+                align="stretch"
+                maxH="300px" // Set the maximum height for the scrollable area
+                overflowY="auto"
               >
-                <Input
-                  placeholder="Search users by name..."
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                />
-              </Box>
-
-              {/* Users Section */}
-              <Box
-                bg="white"
-                p={6}
-                borderRadius="lg"
-                shadow="md"
-                maxW="1000px"
-                mx="auto"
-              >
-                <Heading size="md" mb={4}>
-                  User List
-                </Heading>
-                <VStack
-                  spacing={4}
-                  align="stretch"
-                  maxH="300px" // Set the maximum height for the scrollable area
-                  overflowY="auto"
-                >
-                  {filteredUsers.map((user) => (
-                    <HStack
-                      key={user._id}
-                      bg="gray.50"
-                      p={4}
-                      borderRadius="lg"
-                      spacing={4}
-                      shadow="sm"
-                      align="center"
-                    >
-                      {/* <Avatar size="md" name={user.name} /> */}
-                      <Text fontSize="lg">{user.name}</Text>
-                      {/* <Button
-                    leftIcon={<UserPen />}
-                    colorScheme="teal"
-                    variant="outline"
-                    onClick={EditProfile}
+                {filteredUsers.map((user) => (
+                  <HStack
+                    key={user._id}
+                    bg="gray.50"
+                    p={4}
+                    borderRadius="lg"
+                    spacing={4}
+                    shadow="sm"
+                    align="center"
                   >
-                    Edit
-                  </Button> */}
-                    </HStack>
-                  ))}
-                </VStack>
-              </Box>
-            </div>
-          </div>
+                    <Text fontSize="lg">{user.name}</Text>
+                  </HStack>
+                ))}
+              </VStack>
+              <button
+                onClick={handleUserList}
+                className="px-4 py-1 bg-blue-500 text-white rounded-lg hover:bg-blue-600 mt-4"
+              >
+                Check Detailed List
+              </button>
+            </Box>
+          </SimpleGrid>
         </VStack>
       </Box>
     </div>
