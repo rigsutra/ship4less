@@ -15,6 +15,7 @@ const trackingRoutes = require("./routes/trackingId"); // Corrected import
 const users = require("./routes/user");
 const admins = require("./routes/admin");
 const dhlOrdersRoutes=require("./routes/dhlOrder")
+const earningRoutes = require("./routes/earning")
 
 dotenv.config();
 connectDB();
@@ -51,6 +52,7 @@ app.use("/api", trackingRoutes);
 app.use("/api", users);
 app.use("/api", admins);
 app.use("/api",dhlOrdersRoutes)
+app.use("/api",earningRoutes)
 
 // Default route
 app.get("/", (req, res) => {

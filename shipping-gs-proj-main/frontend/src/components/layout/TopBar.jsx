@@ -29,9 +29,9 @@ const TopBar = ({ title }) => {
     navigate("/Profile");
   };
 
-  const handleCreateAdmin = () => {
-    navigate("/CreateAdmin"); // Navigate to the "Create Admin" page
-  };
+  // const handleCreateAdmin = () => {
+  //   navigate("/CreateAdmin"); // Navigate to the "Create Admin" page
+  // };
 
   return (
 
@@ -57,7 +57,7 @@ const TopBar = ({ title }) => {
           </Button>
 
           {/* Show "Create Admin" button only for admins */}
-          {user?.role === "admin" && (
+          {/* {user?.role === "admin" && (
             <Button
               colorScheme="blue"
               onClick={handleCreateAdmin}
@@ -65,7 +65,7 @@ const TopBar = ({ title }) => {
             >
               Create New Admin
             </Button>
-          )}
+          )} */}
         </div>
       </div>
     </div>
