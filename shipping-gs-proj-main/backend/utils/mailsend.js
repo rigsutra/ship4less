@@ -11,7 +11,7 @@ const sendEmail = async ({ email, subject, message }) => {
   });
 
   const mailOptions = {
-    from: "Ship4less Support <your-email@gmail.com>",
+    from: "Ship4less Support <sandbox@ship4less.ru>",
     to: email,
     subject: subject,
     text: message,

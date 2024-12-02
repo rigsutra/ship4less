@@ -75,15 +75,15 @@ router.post("/login", async (req, res) => {
   }
 });
 
-router.get("/getusers", async function (req, res) {
-  try {
-    const users = await User.find({ role: "user" });
-    res.json(users);
-  } catch (error) {
-    console.error("Error fetching users:", error);
-    res.status(500).json({ message: "Server error" });
-  }
-});
+// router.get("/getusers",authMiddleware, async function (req, res) {
+//   try {
+//     const users = await User.find({ role: "user" });
+//     res.json(users);
+//   } catch (error) {
+//     console.error("Error fetching users:", error);
+//     res.status(500).json({ message: "Server error" });
+//   }
+// });
 
 router.post(
   "/addadmin",
