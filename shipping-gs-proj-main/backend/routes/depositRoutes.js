@@ -99,7 +99,7 @@ router.post("/create-payment", authMiddleware, async (req, res) => {
 
   try {
     const response = await axios.post(
-      "https://api.nowpayments.io/v1/invoice",
+      "https://api-sandbox.nowpayments.io/v1/invoice",
       {
         price_amount: amount,
         price_currency: currency,

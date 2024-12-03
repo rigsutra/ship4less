@@ -11,6 +11,19 @@ import {
   Spinner,
   Input,
   HStack,
+  VStack,
+  Button,
+  useDisclosure,
+  Modal,
+  ModalOverlay,
+  ModalContent,
+  ModalHeader,
+  ModalFooter,
+  ModalBody,
+  ModalCloseButton,
+  NumberInput,
+  NumberInputField,
+  useToast, // Import the useToast hook
 } from "@chakra-ui/react";
 import axios from "axios";
 import { useSelector } from "react-redux";
@@ -22,15 +35,20 @@ function UserTable() {
   const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
+  const [emailSearchTerm, setEmailSearchTerm] = useState("");
   const { token } = useSelector((state) => state.auth);
 
-  // Fetch users and their total orders
+  const { isOpen, onOpen, onClose } = useDisclosure(); // Chakra UI modal hooks
+  const [selectedUser, setSelectedUser] = useState(null); // To track which user is being edited
+  const [balanceAmount, setBalanceAmount] = useState(0); // Amount to add
+  const toast = useToast(); // Initialize the toast hook
+
   useEffect(() => {
     const fetchUsers = async () => {
       try {
         const response = await axios.post(
           `${baseUrl}/api/getusers`,
-          {}, // Empty body for POST request
+          {},
           {
             headers: {
               Authorization: `Bearer ${token}`,
@@ -92,24 +110,63 @@ function UserTable() {
     fetchUsers();
   }, [token]);
 
-  // Filter users based on the search term
+  const handleAddBalance = async () => {
+    try {
+      const response = await axios.post(
+        `${baseUrl}/api/add-balance`,
+        { userId: selectedUser._id, amount: balanceAmount },
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+
+      toast({
+        title: "Balance Updated",
+        description: response.data.message,
+        status: "success",
+        duration: 5000,
+        isClosable: true,
+      });
+      
+      setBalanceAmount(0);
+      setSelectedUser(null);
+      onClose();
+    } catch (error) {
+      console.error("Error adding balance:", error);
+      toast({
+        title: "Error",
+        description: error.response?.data?.message || "Failed to add balance",
+        status: "error",
+        duration: 5000,
+        isClosable: true,
+      });
+    }
+  };
+
   const filteredUsers = users.filter((user) =>
-    user.name.toLowerCase().includes(searchTerm.toLowerCase())
+    user.name?.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
   return (
     <div className="min-h-100vh">
-      <TopBar title={"User List"}></TopBar>
+      <TopBar title={"User List"} />
       <Box p={4} bg="gray.50" minH="100vh">
-        {/* Search Bar */}
-        <HStack mb={4}>
+        <VStack spacing={4} align="start">
           <Input
             placeholder="Search by username"
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
             width="300px"
           />
-        </HStack>
+          <Input
+            placeholder="Search by email"
+            value={emailSearchTerm}
+            onChange={(e) => setEmailSearchTerm(e.target.value)}
+            width="300px"
+          />
+        </VStack>
 
         {loading ? (
           <Spinner size="xl" />
@@ -120,8 +177,10 @@ function UserTable() {
                 <Tr>
                   <Th>#</Th>
                   <Th>Username</Th>
+                  <Th>Email</Th>
                   <Th>Created Date</Th>
                   <Th>Total Orders</Th>
+                  <Th>Actions</Th>
                 </Tr>
               </Thead>
               <Tbody>
@@ -129,14 +188,56 @@ function UserTable() {
                   <Tr key={user._id}>
                     <Td>{index + 1}</Td>
                     <Td>{user.name}</Td>
+                    <Td>{user.email}</Td>
                     <Td>{new Date(user.createdAt).toLocaleDateString()}</Td>
                     <Td>{user.totalOrders}</Td>
+                    <Td>
+                      <Button
+                        size="sm"
+                        colorScheme="blue"
+                        onClick={() => {
+                          setSelectedUser(user);
+                          onOpen();
+                        }}
+                      >
+                        Add Balance
+                      </Button>
+                    </Td>
                   </Tr>
                 ))}
               </Tbody>
             </Table>
           </TableContainer>
         )}
+
+        {/* Modal for adding balance */}
+        <Modal isOpen={isOpen} onClose={onClose}>
+          <ModalOverlay />
+          <ModalContent>
+            <ModalHeader>Add Balance</ModalHeader>
+            <ModalCloseButton />
+            <ModalBody>
+              <VStack spacing={4}>
+                <p>Adding balance for: {selectedUser?.name}</p>
+                <NumberInput
+                  value={balanceAmount}
+                  onChange={(valueString) => setBalanceAmount(Number(valueString))}
+                  min={0}
+                >
+                  <NumberInputField placeholder="Enter amount" />
+                </NumberInput>
+              </VStack>
+            </ModalBody>
+            <ModalFooter>
+              <Button colorScheme="blue" onClick={handleAddBalance}>
+                Add Balance
+              </Button>
+              <Button variant="ghost" onClick={onClose} ml={3}>
+                Cancel
+              </Button>
+            </ModalFooter>
+          </ModalContent>
+        </Modal>
       </Box>
     </div>
   );
