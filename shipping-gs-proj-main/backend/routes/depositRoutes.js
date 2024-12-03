@@ -40,36 +40,13 @@ function sortObjectKeys(obj) {
     }, {});
 }
 
-// Fetch all available currencies from NowPayments API
-// router.get("/currencies", async (req, res) => {
-//   try {
-//     const response = await axios.get(
-//       "https://api.nowpayments.io/v1/full-currencies",
-//       {
-//         headers: { "x-api-key": NOWPAYMENTS_API_KEY },
-//       }
-//     );
-
-//     if (!response.data || !response.data.currencies) {
-//       return res.status(500).json({ error: "Failed to fetch currencies" });
-//     }
-
-//     res.json({ currencies: response.data.currencies });
-//   } catch (error) {
-//     console.error(
-//       "Error fetching currencies from NowPayments:",
-//       error.response ? error.response.data : error.message
-//     );
-//     res.status(500).json({ error: "Error fetching currencies" });
-//   }
-// });
-
 // Fetch balance for the user
 router.get("/balance", authMiddleware, async (req, res) => {
   try {
     const balance = await Balance.findOne({ userId: req.userId });
     res.json({ balance: balance ? balance.amount : 0 });
   } catch (error) {
+    console.error("Error fetching balance:", error.message);
     res.status(500).send("Error fetching balance");
   }
 });
@@ -80,48 +57,46 @@ router.get("/transactions", authMiddleware, async (req, res) => {
     const transactions = await Transaction.find({ userId: req.userId });
     res.json({ transactions });
   } catch (error) {
+    console.error("Error fetching transactions:", error.message);
     res.status(500).send("Error fetching transactions");
   }
 });
 
 // Create a payment and generate an invoice
 router.post("/create-payment", authMiddleware, async (req, res) => {
-  console.log(req.body);
   const { amount, currency } = req.body;
 
   if (isNaN(amount) || amount <= 0) {
     return res.status(400).json({ error: "Invalid amount" });
   }
-  // Validate currency
+
   if (!currency) {
     return res.status(400).json({ error: "Currency is required" });
   }
 
   try {
     const response = await axios.post(
-      "https://api.nowpayments.io/v1/invoice",
+      "https://api-sandbox.nowpayments.io/v1/invoice",
       {
         price_amount: amount,
         price_currency: currency,
         pay_currency: currency,
         order_id: `order_${Date.now()}`,
-        ipn_callback_url: "https://ship4less.ru/api/ipn",
-        success_url: "https://ship4less.ru/wallet?payment=success",
-        cancel_url: "https://ship4less.ru/wallet?payment=cancel",
+        ipn_callback_url: "http://localhost:5000/api/ipn",
+        success_url: "https://yourdomain.com/payment-success",
+        cancel_url: "https://yourdomain.com/payment-cancel",
       },
       { headers: { "x-api-key": NOWPAYMENTS_API_KEY } }
     );
 
-    console.log(response.data);
     if (!response.data.invoice_url) {
       return res.status(500).json({ error: "Failed to create invoice" });
     }
 
-    // Include currency in transaction creation
     const transaction = new Transaction({
       userId: req.userId,
       amount,
-      currency, // Explicitly include the currency
+      currency,
       status: "Pending",
       paymentId: response.data.id,
     });
@@ -130,7 +105,7 @@ router.post("/create-payment", authMiddleware, async (req, res) => {
     res.json({ invoiceUrl: response.data.invoice_url });
   } catch (error) {
     console.error(
-      "Error creating payment with NowPayments:",
+      "Error creating payment with NOWPayments:",
       error.response ? error.response.data : error.message
     );
     res.status(500).json({ error: "Error creating payment" });
@@ -173,7 +148,6 @@ router.post("/ipn", verifyNowPaymentsSignature, async (req, res) => {
 
     await transaction.save();
 
-    // Update balance if payment is successful
     if (newStatus === "Completed") {
       const balance = await Balance.findOne({ userId: transaction.userId });
 

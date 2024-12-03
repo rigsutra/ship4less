@@ -122,7 +122,7 @@ router.post("/forgotPassword", async (req, res) => {
     "host"
   )}/api/resetpassword/${resetToken}`;
   const message = `we have recived a password reset request. The link to reset your password is as follows: \n\n ${resetUrl}
-  /n/n This link is only valid for 10 minutes. \n\n If you did not request a password reset, please ignore this email.`;
+   This link is only valid for 10 minutes. \n\n If you did not request a password reset, please ignore this email.`;
 
   try {
     await sendEmail({
