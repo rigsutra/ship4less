@@ -6,6 +6,7 @@ const FedexOrderDomestic = require("../models/FedexOrderDomestic");
 const Order = require("../models/Order");
 const DHLOrder = require("../models/DHLOrderModel");
 const DHLOrderModel = require("../models/DHLOrderModel");
+const {Balance} =require("../models/Balance");
 
 
 const router = express.Router();
@@ -414,7 +415,39 @@ router.get("/dhlAllorders/:userId", authMiddleware, async (req, res) => {
       error: error.message,
     });
   }
+
 });
+
+
+
+router.post("/add-balance", authMiddleware, async (req, res) => {
+  const { userId, amount } = req.body;
+
+  // Validation
+  if (!userId || typeof amount !== "number" || amount <= 0) {
+    return res.status(400).json({ message: "Invalid userId or amount" });
+  }
+
+  try {
+    // Find the balance entry for the user or create one if not exists
+    let userBalance = await Balance.findOne({ userId });
+    if (!userBalance) {
+      userBalance = new Balance({ userId, amount: 0 });
+    }
+
+    // Update the balance
+    userBalance.amount += amount;
+    await userBalance.save();
+
+    res.json({ message: "Balance updated successfully", balance: userBalance.amount });
+  } catch (error) {
+    console.error("Error updating balance:", error);
+    res.status(500).json({ message: "An error occurred while updating the balance" });
+  }
+});
+
+
+
 
 
 

@@ -2,6 +2,7 @@ import { useState } from "react";
 import axios from "axios";
 import toast from "react-hot-toast";
 import { useDispatch } from "react-redux";
+import logo from "../../assets/logo.png";
 import {
   createTheme,
   ThemeProvider,
@@ -14,7 +15,6 @@ import {
   TextField,
   Typography,
   Link,
-  Grid,
 } from "@mui/material";
 import { setToken, userExists } from "../../redux/reducer/auth";
 import { useNavigate } from "react-router-dom";
@@ -131,152 +131,150 @@ function Login() {
 
   return (
     <ThemeProvider theme={defaultTheme}>
-      <Box
-        sx={{
-          height: "100vh",
-          display: "flex",
-          justifyContent: "center",
-          alignItems: "center",
-          backgroundColor: "background.default",
-        }}
-      >
+      <Grid container component="main" sx={{ height: "100vh" }}>
+        <CssBaseline />
         <Grid
-          container
-          justifyContent="center"
-          alignItems="center"
-          sx={{ width: { xs: "90%", sm: "70%", md: "50%", lg: "30%" } }}
-        >
-          <Paper elevation={6}>
+          item
+          xs={false}
+          sm={4}
+          md={7}
+          sx={{
+            backgroundImage:
+              "url(https://www.hostpapa.com/blog/app/uploads/2023/05/Best-Chat-Apps-on-The-Internet-Header.jpg)",
+            backgroundRepeat: "no-repeat",
+            backgroundColor: (t) =>
+              t.palette.mode === "light"
+                ? t.palette.grey[50]
+                : t.palette.grey[900],
+            backgroundSize: "cover",
+            backgroundPosition: "center",
+          }}
+        />
+        <Grid item xs={12} sm={8} md={5} component={Paper} elevation={6} square>
+          <Box
+            sx={{
+              my: 8,
+              mx: 4,
+              display: "flex",
+              flexDirection: "column",
+              alignItems: "center",
+            }}
+          >
+            <Avatar sx={{ m: 1, bgcolor: "secondary.main" }} />
+            <Typography component="h1" variant="h5">
+              {isLogin ? "Sign In" : "Sign Up"}
+            </Typography>
             <Box
-              sx={{
-                p: 4,
-                display: "flex",
-                flexDirection: "column",
-                alignItems: "center",
-              }}
+              component="form"
+              noValidate
+              sx={{ mt: 1 }}
+              onSubmit={isLogin ? handleLogin : handleSignUp}
             >
-              <img
-                src={imageuse}
-                alt="logo"
-                style={{ width: "200px", height: "40px" }}
+              {!isLogin && (
+                <TextField
+                  margin="normal"
+                  required
+                  fullWidth
+                  id="name"
+                  label="Name"
+                  name="name"
+                  autoFocus
+                  value={name.value}
+                  onChange={name.changeHandler}
+                />
+              )}
+              <TextField
+                margin="normal"
+                required
+                fullWidth
+                id="username"
+                label="Username"
+                name="username"
+                autoFocus={isLogin}
+                value={username.value}
+                onChange={username.changeHandler}
               />
-              {/* <Avatar sx={{ m: 1, bgcolor: "secondary.main" }} /> */}
-              {/* <Typography component="h1" variant="h5">
-                {isLogin ? "Sign In" : "Sign Up"}
-              </Typography> */}
-              <Box
-                component="form"
-                noValidate
-                sx={{ mt: 3 }}
-                onSubmit={isLogin ? handleLogin : handleSignUp}
+              {username.error && (
+                <Typography color="error" variant="caption">
+                  {username.error}
+                </Typography>
+              )}
+              {!isLogin && (
+                <TextField
+                  margin="normal"
+                  required
+                  fullWidth
+                  id="email"
+                  label="Email"
+                  name="email"
+                  value={email.value}
+                  onChange={email.changeHandler}
+                />
+              )}
+              {!isLogin && email.error && (
+                <Typography color="error" variant="caption">
+                  {email.error}
+                </Typography>
+              )}
+              <TextField
+                margin="normal"
+                required
+                fullWidth
+                name="password"
+                label="Password"
+                type="password"
+                id="password"
+                autoComplete="current-password"
+                value={password.value}
+                onChange={password.changeHandler}
+              />
+              {password.error && (
+                <Typography color="error" variant="caption">
+                  {password.error}
+                </Typography>
+              )}
+              {isLogin && (
+                <FormControlLabel
+                  control={<Checkbox value="remember" color="primary" />}
+                  label="Remember me"
+                />
+              )}
+              <Button
+                type="submit"
+                fullWidth
+                variant="contained"
+                sx={{ mt: 3, mb: 2 }}
+                disabled={isLoading}
               >
-                {!isLogin && (
-                  <TextField
-                    margin="normal"
-                    required
-                    fullWidth
-                    id="name"
-                    label="Name"
-                    name="name"
-                    autoFocus
-                    value={name.value}
-                    onChange={name.changeHandler}
-                  />
-                )}
-                <TextField
-                  margin="normal"
-                  required
-                  fullWidth
-                  id="username"
-                  label="Username"
-                  name="username"
-                  autoFocus={isLogin}
-                  value={username.value}
-                  onChange={username.changeHandler}
-                />
-                {username.error && (
-                  <Typography color="error" variant="caption">
-                    {username.error}
-                  </Typography>
-                )}
-                {!isLogin && (
-                  <TextField
-                    margin="normal"
-                    required
-                    fullWidth
-                    id="email"
-                    label="Email"
-                    name="email"
-                    value={email.value}
-                    onChange={email.changeHandler}
-                  />
-                )}
-                {!isLogin && email.error && (
-                  <Typography color="error" variant="caption">
-                    {email.error}
-                  </Typography>
-                )}
-                <TextField
-                  margin="normal"
-                  required
-                  fullWidth
-                  name="password"
-                  label="Password"
-                  type="password"
-                  id="password"
-                  autoComplete="current-password"
-                  value={password.value}
-                  onChange={password.changeHandler}
-                />
-                {password.error && (
-                  <Typography color="error" variant="caption">
-                    {password.error}
-                  </Typography>
-                )}
-                {isLogin && (
-                  <FormControlLabel
-                    control={<Checkbox value="remember" color="primary" />}
-                    label="Remember me"
-                  />
-                )}
+                {isLogin ? "Sign In" : "Sign Up"}
+              </Button>
+              {isLogin && (
                 <Button
-                  type="submit"
                   fullWidth
-                  variant="contained"
-                  sx={{ mt: 3, mb: 2 }}
-                  disabled={isLoading}
+                  variant="text"
+                  onClick={() => navigate("/forgot_password")}
+                  sx={{ mb: 2 }}
                 >
-                  {isLogin ? "Sign In" : "Sign Up"}
+                  Forgot Password?
                 </Button>
-                {isLogin && (
-                  <Button
-                    // fullWidth
-                    justifyContent="left"
-                    variant="text"
-                    onClick={() => navigate("/forgot_password")}
-                    sx={{ mb: 2 }}
+              )}
+              <Grid container>
+                <Grid item>
+                  <Link
+                    disabled={isLoading}
+                    onClick={toggleLogin}
+                    style={{ cursor: "pointer" }}
                   >
-                    Forgot Password?
-                  </Button>
-                )}
-                <Grid container>
-                  <Grid item>
-                    <Link
-                      disabled={isLoading}
-                      onClick={toggleLogin}
-                      style={{ cursor: "pointer" }}
-                    >
-                      {isLogin
-                        ? "Don't have an account? Sign Up"
-                        : "Already have an account? Sign In"}
-                    </Link>
-                  </Grid>
+                    {isLogin
+                      ? "Don't have an account? Sign Up"
+                      : "Already have an account? Sign In"}
+                  </Link>
                 </Grid>
-              </Box>
+              </Grid>
             </Box>
-          </Paper>
+          </Box>
         </Grid>
-      </Box>
+      </Grid>
     </ThemeProvider>
   );
 }
