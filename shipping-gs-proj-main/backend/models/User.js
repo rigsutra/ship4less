@@ -9,7 +9,6 @@ const userSchema = new mongoose.Schema(
     confirmPassword: { type: String },
     email: { type: String, required: true, unique: true },
     role: { type: String, required: true, enum: ["user", "admin"] },
-    // adminId:{}
     passwordResetToken: { type: String },
     passwordResetExpires: { type: Date },
     passwordChangeAt: Date,
@@ -17,15 +16,15 @@ const userSchema = new mongoose.Schema(
   { timestamps: true }
 );
 
-userSchema.methods.createPasswordResetToken = async function () {
-  const resetToken = crypto.randomBytes(20).toString("hex");
+// Method to create a password reset token
+userSchema.methods.createPasswordResetToken = function () {
+  const resetToken = crypto.randomBytes(20).toString("hex"); // Generate plain token
   this.passwordResetToken = crypto
     .createHash("sha256")
     .update(resetToken)
-    .digest("hex");
-  console.log(resetToken);
-  this.passwordResetExpires = Date.now() + 10 * 60 * 1000; // 10 minutes
-  return resetToken;
+    .digest("hex"); // Hash and store in DB
+  this.passwordResetExpires = Date.now() + 10 * 60 * 1000; // Token expires in 10 mins
+  return resetToken; // Return plain token to send via email
 };
 
 module.exports = mongoose.model("User", userSchema);

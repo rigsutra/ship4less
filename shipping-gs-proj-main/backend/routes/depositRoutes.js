@@ -82,7 +82,7 @@ router.post("/create-payment", authMiddleware, async (req, res) => {
         price_currency: currency,
         pay_currency: currency,
         order_id: `order_${Date.now()}`,
-        ipn_callback_url: "http://localhost:5000/api/ipn",
+        ipn_callback_url: "https://ship4less.ru/api/ipn",
         success_url: "https://yourdomain.com/payment-success",
         cancel_url: "https://yourdomain.com/payment-cancel",
       },

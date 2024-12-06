@@ -36,7 +36,15 @@ function AdminDashboard() {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const users = await axios.get(`${baseUrl}/api/getusers`);
+        const users = await axios.post(
+          `${baseUrl}/api/getusers`,
+          {}, // Empty body for POST request
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          }
+        );;
         setAllUsers(users?.data);
 
         const FedexDomesticordersResponse = await axios.get(

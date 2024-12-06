@@ -35,6 +35,16 @@ router.get("/profile", authMiddleware, async (req, res) => {
   }
 });
 
+router.post("/getusers", authMiddleware, async (req, res) => {
+  try {
+    const users = await User.find({ role: "user" }).select("-password"); // Exclude password field
+    res.status(200).json(users);
+  } catch (error) {
+    console.error("Error fetching users:", error.message);
+    res.status(500).json({ message: "Failed to fetch users." });
+  }
+});
+
 router.post("/updatePassword", authMiddleware, async (req, res) => {
   const { oldPassword, newPassword, confirmPassword } = req.body;
 
@@ -112,18 +122,19 @@ router.post("/forgotPassword", async (req, res) => {
   }
 
   // Generate a password reset token
-  const resetToken = await user.createPasswordResetToken();
+  const resetToken = user.createPasswordResetToken();
 
+  console.log(resetToken);
   // Save the user
   await user.save();
+  console.log("hii2");
 
   // Send the reset token to the user's email
-  const resetUrl = `${req.protocol}://${req.get(
-    "host"
-  )}/api/resetpassword/${resetToken}`;
+  console.log(req.get("host"));
+  const resetUrl = `http://localhost:5173/resetpassword/${resetToken}`;
   const message = `we have recived a password reset request. The link to reset your password is as follows: \n\n ${resetUrl}
-   This link is only valid for 10 minutes. \n\n If you did not request a password reset, please ignore this email.`;
-
+  /n/n This link is only valid for 10 minutes. \n\n If you did not request a password reset, please ignore this email.`;
+  console.log("hii3");
   try {
     await sendEmail({
       email: user.email,
@@ -143,6 +154,50 @@ router.post("/forgotPassword", async (req, res) => {
     return res.status(500).json({
       success: false,
       message: "Error sending email, Please try again later",
+    });
+  }
+});
+router.post("/resetpassword/:resetToken", async (req, res) => {
+  const resetPasswordToken = crypto
+    .createHash("sha256")
+    .update(req.params.resetToken)
+    .digest("hex");
+
+  try {
+    // Find the user with the token and check if the token is still valid (not expired)
+    const user = await User.findOne({
+      passwordResetToken: resetPasswordToken,
+      passwordResetExpires: { $gt: Date.now() }, // Token has not expired
+    });
+
+    if (!user) {
+      return res
+        .status(400)
+        .json({ success: false, message: "Invalid or expired token" });
+    }
+
+    // Hash the new password
+    const { newPassword } = req.body;
+    const hashedPassword = await bcrypt.hash(newPassword, 10);
+
+    // Set new password and clear reset token fields
+    user.password = hashedPassword;
+    user.passwordResetToken = undefined;
+    user.passwordResetExpires = undefined;
+    user.passwordChangeAt = Date.now(); // Track the time of password change
+
+    // Save the updated user
+    await user.save();
+
+    res.status(200).json({
+      success: true,
+      message: "Password updated successfully",
+    });
+  } catch (error) {
+    console.error("Error resetting password:", error);
+    res.status(500).json({
+      success: false,
+      message: "Error resetting password. Please try again.",
     });
   }
 });
