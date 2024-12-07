@@ -435,21 +435,25 @@ router.get("/dhlAllorders/:userId", authMiddleware, async (req, res) => {
 });
 
 router.post("/add-balance", authMiddleware, async (req, res) => {
-  const { userId, amount } = req.body;
+  const { userId, amount, paymentId, currency } = req.body;
 
-  // Validation
+  const allowedCurrencies = ["TRX", "BEP", "BSC", "BTC", "LTC", "ETH"];
+
+  // Validate the input
   if (!userId || typeof amount !== "number" || amount <= 0) {
     return res.status(400).json({ message: "Invalid userId or amount" });
   }
 
+  if (!allowedCurrencies.includes(currency)) {
+    return res.status(400).json({ message: "Invalid currency selected" });
+  }
+
   try {
-    // Find the balance entry for the user or create one if not exists
     let userBalance = await Balance.findOne({ userId });
     if (!userBalance) {
       userBalance = new Balance({ userId, amount: 0 });
     }
 
-    // Update the balance
     userBalance.amount += amount;
     await userBalance.save();
 

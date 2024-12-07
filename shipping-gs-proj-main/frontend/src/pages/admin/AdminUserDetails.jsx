@@ -22,7 +22,8 @@ import {
   ModalCloseButton,
   NumberInput,
   NumberInputField,
-  useToast, // Import the useToast hook
+  Select,
+  useToast,
 } from "@chakra-ui/react";
 import axios from "axios";
 import { useSelector } from "react-redux";
@@ -37,10 +38,20 @@ function UserTable() {
   const [emailSearchTerm, setEmailSearchTerm] = useState("");
   const { token } = useSelector((state) => state.auth);
 
-  const { isOpen, onOpen, onClose } = useDisclosure(); // Chakra UI modal hooks
-  const [selectedUser, setSelectedUser] = useState(null); // To track which user is being edited
-  const [balanceAmount, setBalanceAmount] = useState(0); // Amount to add
-  const toast = useToast(); // Initialize the toast hook
+  const { isOpen, onOpen, onClose } = useDisclosure();
+  const [selectedUser, setSelectedUser] = useState(null);
+  const [balanceAmount, setBalanceAmount] = useState(0);
+  const [selectedCurrency, setSelectedCurrency] = useState("TRX");
+  const toast = useToast();
+
+  const allowedCurrencies = [
+    { name: "USDT (TRC20)", code: "TRX" },
+    { name: "USDT (BEP20)", code: "BEP" },
+    { name: "USDT (BSC20)", code: "BSC" },
+    { name: "BTC", code: "BTC" },
+    { name: "LTC", code: "LTC" },
+    { name: "ETH", code: "ETH" },
+  ];
 
   useEffect(() => {
     const fetchUsers = async () => {
@@ -49,52 +60,37 @@ function UserTable() {
           `${baseUrl}/api/getusers`,
           {},
           {
-            headers: {
-              Authorization: `Bearer ${token}`,
-            },
+            headers: { Authorization: `Bearer ${token}` },
           }
         );
 
         const usersWithOrders = await Promise.all(
           response.data.map(async (user) => {
-            const ordersResponseDomestic = await axios.get(
-              `${baseUrl}/api/getAllOrdersdomestic/${user._id}`,
-              {
-                headers: {
-                  Authorization: `Bearer ${token}`,
-                },
-              }
-            );
-            const ordersResponseInternational = await axios.get(
-              `${baseUrl}/api/getAllOrdersinternational/${user._id}`,
-              {
-                headers: {
-                  Authorization: `Bearer ${token}`,
-                },
-              }
-            );
-            const ordersResponseUps = await axios.get(
-              `${baseUrl}/api/upsAllorders/${user._id}`,
-              {
-                headers: {
-                  Authorization: `Bearer ${token}`,
-                },
-              }
-            );
-            const ordersResponseDhl = await axios.get(
-              `${baseUrl}/api/dhlAllorders/${user._id}`,
-              {
-                headers: {
-                  Authorization: `Bearer ${token}`,
-                },
-              }
-            );
+            const [domestic, international, ups, dhl] = await Promise.all([
+              axios.get(`${baseUrl}/api/getAllOrdersdomestic/${user._id}`, {
+                headers: { Authorization: `Bearer ${token}` },
+              }),
+              axios.get(
+                `${baseUrl}/api/getAllOrdersinternational/${user._id}`,
+                {
+                  headers: { Authorization: `Bearer ${token}` },
+                }
+              ),
+              axios.get(`${baseUrl}/api/upsAllorders/${user._id}`, {
+                headers: { Authorization: `Bearer ${token}` },
+              }),
+              axios.get(`${baseUrl}/api/dhlAllorders/${user._id}`, {
+                headers: { Authorization: `Bearer ${token}` },
+              }),
+            ]);
+
             const totalOrders =
-              ordersResponseDomestic.data.totalOrderCount +
-              ordersResponseInternational.data.totalOrderCount +
-              ordersResponseUps.data.totalOrderCount +
-              ordersResponseDhl.data.totalOrderCount;
-            return { ...user, totalOrders: totalOrders };
+              domestic.data.totalOrderCount +
+              international.data.totalOrderCount +
+              ups.data.totalOrderCount +
+              dhl.data.totalOrderCount;
+
+            return { ...user, totalOrders };
           })
         );
 
@@ -110,19 +106,33 @@ function UserTable() {
   }, [token]);
 
   const handleAddBalance = async () => {
+    if (!selectedUser) {
+      toast({
+        title: "Error",
+        description: "No user selected.",
+        status: "error",
+        duration: 5000,
+        isClosable: true,
+      });
+      return;
+    }
+
     try {
       const response = await axios.post(
         `${baseUrl}/api/add-balance`,
-        { userId: selectedUser._id, amount: balanceAmount },
         {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
+          userId: selectedUser._id,
+          amount: balanceAmount,
+          paymentId: `${Date.now()}`,
+          currency: selectedCurrency,
+        },
+        {
+          headers: { Authorization: `Bearer ${token}` },
         }
       );
 
       toast({
-        title: "Balance Updated",
+        title: "Success",
         description: response.data.message,
         status: "success",
         duration: 5000,
@@ -144,13 +154,16 @@ function UserTable() {
     }
   };
 
-  const filteredUsers = users.filter((user) =>
-    user.name?.toLowerCase().includes(searchTerm.toLowerCase())
+  const filteredUsers = users.filter(
+    (user) =>
+      user.name?.toLowerCase().includes(searchTerm.toLowerCase())
+    //  &&
+      // user.email?.toLowerCase().includes(emailSearchTerm.toLowerCase())
   );
 
   return (
     <div className="min-h-100vh">
-      <TopBar title={"User List"} />
+      <TopBar title="User List" />
       <Box p={4} bg="gray.50" minH="100vh">
         <VStack spacing={4} align="start">
           <Input
@@ -214,8 +227,14 @@ function UserTable() {
           </TableContainer>
         )}
 
-        {/* Modal for adding balance */}
-        <Modal isOpen={isOpen} onClose={onClose}>
+        <Modal
+          isOpen={isOpen}
+          onClose={() => {
+            setBalanceAmount(0);
+            setSelectedUser(null);
+            onClose();
+          }}
+        >
           <ModalOverlay />
           <ModalContent>
             <ModalHeader>Add Balance</ModalHeader>
@@ -232,13 +251,32 @@ function UserTable() {
                 >
                   <NumberInputField placeholder="Enter amount" />
                 </NumberInput>
+                <Select
+                  placeholder="Select currency"
+                  value={selectedCurrency}
+                  onChange={(e) => setSelectedCurrency(e.target.value)}
+                >
+                  {allowedCurrencies.map((currency) => (
+                    <option key={currency.code} value={currency.code}>
+                      {currency.name}
+                    </option>
+                  ))}
+                </Select>
               </VStack>
             </ModalBody>
             <ModalFooter>
               <Button colorScheme="blue" onClick={handleAddBalance}>
                 Add Balance
               </Button>
-              <Button variant="ghost" onClick={onClose} ml={3}>
+              <Button
+                variant="ghost"
+                onClick={() => {
+                  setBalanceAmount(0);
+                  setSelectedUser(null);
+                  onClose();
+                }}
+                ml={3}
+              >
                 Cancel
               </Button>
             </ModalFooter>
