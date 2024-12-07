@@ -6,10 +6,10 @@ import logo from "../../assets/logo.png";
 import {
   createTheme,
   ThemeProvider,
-  Avatar,
   Box,
   Button,
   Checkbox,
+  CssBaseline,
   FormControlLabel,
   Paper,
   TextField,
@@ -18,7 +18,6 @@ import {
 } from "@mui/material";
 import { setToken, userExists } from "../../redux/reducer/auth";
 import { useNavigate } from "react-router-dom";
-import imageuse from "../../../src/assets/logomain1.png";
 
 const baseUrl = import.meta.env.VITE_BASE_URL;
 
@@ -131,36 +130,31 @@ function Login() {
 
   return (
     <ThemeProvider theme={defaultTheme}>
-      <Grid container component="main" sx={{ height: "100vh" }}>
-        <CssBaseline />
-        <Grid
-          item
-          xs={false}
-          sm={4}
-          md={7}
+      <CssBaseline />
+      <Box
+        sx={{
+          height: "100vh",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+        }}
+      >
+        <Paper
+          elevation={6}
           sx={{
-            backgroundImage:
-              "url(https://www.hostpapa.com/blog/app/uploads/2023/05/Best-Chat-Apps-on-The-Internet-Header.jpg)",
-            backgroundRepeat: "no-repeat",
-            backgroundColor: (t) =>
-              t.palette.mode === "light"
-                ? t.palette.grey[50]
-                : t.palette.grey[900],
-            backgroundSize: "cover",
-            backgroundPosition: "center",
+            padding: 4,
+            maxWidth: 400,
+            width: "100%",
           }}
-        />
-        <Grid item xs={12} sm={8} md={5} component={Paper} elevation={6} square>
+        >
           <Box
             sx={{
-              my: 8,
-              mx: 4,
               display: "flex",
               flexDirection: "column",
               alignItems: "center",
             }}
           >
-            <Avatar sx={{ m: 1, bgcolor: "secondary.main" }} />
+            <img src={logo} className="w-20 h-20 rounded-full"></img>
             <Typography component="h1" variant="h5">
               {isLogin ? "Sign In" : "Sign Up"}
             </Typography>
@@ -258,23 +252,23 @@ function Login() {
                   Forgot Password?
                 </Button>
               )}
-              <Grid container>
-                <Grid item>
-                  <Link
-                    disabled={isLoading}
-                    onClick={toggleLogin}
-                    style={{ cursor: "pointer" }}
-                  >
-                    {isLogin
-                      ? "Don't have an account? Sign Up"
-                      : "Already have an account? Sign In"}
-                  </Link>
-                </Grid>
-              </Grid>
+              <Link
+                disabled={isLoading}
+                onClick={toggleLogin}
+                style={{
+                  cursor: "pointer",
+                  display: "block",
+                  textAlign: "center",
+                }}
+              >
+                {isLogin
+                  ? "Don't have an account? Sign Up"
+                  : "Already have an account? Sign In"}
+              </Link>
             </Box>
           </Box>
-        </Grid>
-      </Grid>
+        </Paper>
+      </Box>
     </ThemeProvider>
   );
 }

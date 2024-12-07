@@ -32,6 +32,8 @@ import OrderDetails from "./pages/user/OrderDetails";
 import FedexOrderListinternational from "./pages/user/FedexOrderListinternational";
 import ForgotPassword from "./pages/user/forgetPassword.jsx";
 import UserProfile from "./pages/user/UserProfile";
+import PaymentStatusChecker from "./pages/user/PaymentStatusChecker";
+import PaymentSuccess from "./pages/user/PaymentSuccess";
 import AddAdmin from "./pages/admin/AddAdmin";
 import AdminOrderDetailsUps from "./pages/admin/AdminOrderDetailsUPS.jsx";
 import AdmimOrderDetailsFedex from "./pages/admin/AdminOrderDetailsFedex";
@@ -132,7 +134,11 @@ function App() {
                 />
                 <Route path="/Profile" element={<UserProfile />} />
               </Route>
-
+              <Route
+                path="/payment-status/:paymentId"
+                element={<PaymentStatusChecker />}
+              />
+              <Route path="/payment-success" element={<PaymentSuccess />} />
               {/* Fallback route */}
               <Route path="*" element={<NotFound />} />
             </Routes>

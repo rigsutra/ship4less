@@ -6,8 +6,8 @@ const FedexOrderDomestic = require("../models/FedexOrderDomestic");
 const Order = require("../models/Order");
 const DHLOrder = require("../models/DHLOrderModel");
 const DHLOrderModel = require("../models/DHLOrderModel");
-const {Balance} =require("../models/Balance");
-
+const TransactionHistory = require("../models/TransactionHistory");
+const { Balance } = require("../models/Balance");
 
 const router = express.Router();
 
@@ -327,43 +327,56 @@ router.put("/dhlOrderStatus/:id", authMiddleware, async (req, res) => {
   }
 });
 
-
-
-router.get("/getAllOrdersdomestic/:userId", authMiddleware, async (req, res) => {
-  try {
-    // console.log(req.userId);
-    const orders = await FedexOrderDomestic.find({ userId: req.params.userId }) // Filter by userId
-      .populate(
-        "senderAddress receiverAddress pickAddress",
-        "name street street2 city state zip phone email country"
-      )
-      .populate("shipment")
-      .sort("-createdAt");
-      const totalOrderCount = await FedexOrderDomestic.countDocuments({ userId: req.params.userId });
-    res.json({orders,totalOrderCount});
-  } catch (error) {
-    console.error("Error fetching orders:", error);
-    res.status(500).json({ message: "Server error" });
+router.get(
+  "/getAllOrdersdomestic/:userId",
+  authMiddleware,
+  async (req, res) => {
+    try {
+      // console.log(req.userId);
+      const orders = await FedexOrderDomestic.find({
+        userId: req.params.userId,
+      }) // Filter by userId
+        .populate(
+          "senderAddress receiverAddress pickAddress",
+          "name street street2 city state zip phone email country"
+        )
+        .populate("shipment")
+        .sort("-createdAt");
+      const totalOrderCount = await FedexOrderDomestic.countDocuments({
+        userId: req.params.userId,
+      });
+      res.json({ orders, totalOrderCount });
+    } catch (error) {
+      console.error("Error fetching orders:", error);
+      res.status(500).json({ message: "Server error" });
+    }
   }
-});
-router.get("/getAllOrdersinternational/:userId", authMiddleware, async (req, res) => {
-  try {
-    // console.log(req.userId);
-    const orders = await FedexOrderInternational.find({ userId: req.params.userId }) // Filter by userId
-      .populate(
-        "senderAddress receiverAddress pickAddress",
-        "name street street2 city state zip phone email country"
-      )
-      .populate("shipment")
-      .sort("-createdAt");
-      const totalOrderCount = await FedexOrderInternational.countDocuments({ userId: req.params.userId });
-    res.json({orders,totalOrderCount});
-  } catch (error) {
-    console.error("Error fetching orders:", error);
-    res.status(500).json({ message: "Server error" });
+);
+router.get(
+  "/getAllOrdersinternational/:userId",
+  authMiddleware,
+  async (req, res) => {
+    try {
+      // console.log(req.userId);
+      const orders = await FedexOrderInternational.find({
+        userId: req.params.userId,
+      }) // Filter by userId
+        .populate(
+          "senderAddress receiverAddress pickAddress",
+          "name street street2 city state zip phone email country"
+        )
+        .populate("shipment")
+        .sort("-createdAt");
+      const totalOrderCount = await FedexOrderInternational.countDocuments({
+        userId: req.params.userId,
+      });
+      res.json({ orders, totalOrderCount });
+    } catch (error) {
+      console.error("Error fetching orders:", error);
+      res.status(500).json({ message: "Server error" });
+    }
   }
-});
-
+);
 
 router.get("/upsAllorders/:userId", authMiddleware, async (req, res) => {
   try {
@@ -375,12 +388,14 @@ router.get("/upsAllorders/:userId", authMiddleware, async (req, res) => {
     }
 
     // Send the array of orders in the response
-    const totalOrderCount = await Order.countDocuments({ userId: req.params.userId });
+    const totalOrderCount = await Order.countDocuments({
+      userId: req.params.userId,
+    });
     // res.json({orders,totalOrderCount});
     res.status(200).json({
       success: true,
       orders: upsOrders, // All UPS orders in the array
-      totalOrderCount:totalOrderCount,
+      totalOrderCount: totalOrderCount,
       // type: "UPS Orders", // Additional info (optional)
     });
   } catch (error) {
@@ -401,12 +416,14 @@ router.get("/dhlAllorders/:userId", authMiddleware, async (req, res) => {
     }
 
     // Send the array of orders in the response
-    const totalOrderCount = await DHLOrderModel.countDocuments({ userId: req.params.userId });
+    const totalOrderCount = await DHLOrderModel.countDocuments({
+      userId: req.params.userId,
+    });
     // res.json({orders,totalOrderCount});
     res.status(200).json({
       success: true,
       orders: dhlOrders, // All UPS orders in the array
-      totalOrderCount:totalOrderCount,
+      totalOrderCount: totalOrderCount,
     });
   } catch (error) {
     console.error("Error fetching UPS orders:", error);
@@ -415,10 +432,7 @@ router.get("/dhlAllorders/:userId", authMiddleware, async (req, res) => {
       error: error.message,
     });
   }
-
 });
-
-
 
 router.post("/add-balance", authMiddleware, async (req, res) => {
   const { userId, amount } = req.body;
@@ -439,16 +453,47 @@ router.post("/add-balance", authMiddleware, async (req, res) => {
     userBalance.amount += amount;
     await userBalance.save();
 
-    res.json({ message: "Balance updated successfully", balance: userBalance.amount });
+    // Create transaction record
+    const transaction = new TransactionHistory({
+      userId,
+      amount,
+      type: "credit", // Add transaction type
+      balanceAfter: userBalance.amount, // Add resulting balance
+    });
+    await transaction.save();
+
+    res.json({
+      message: "Balance updated successfully",
+      balance: userBalance.amount,
+      transaction: {
+        amount: transaction.amount,
+        createdAt: transaction.createdAt,
+        type: transaction.type,
+      },
+    });
   } catch (error) {
     console.error("Error updating balance:", error);
-    res.status(500).json({ message: "An error occurred while updating the balance" });
+    res
+      .status(500)
+      .json({ message: "An error occurred while updating the balance" });
   }
 });
 
-
-
-
-
+router.get("/transactions", authMiddleware, async (req, res) => {
+  console.log("transactions");
+  try {
+    const transactions = await TransactionHistory.find();
+    if (transactions.length === 0) {
+      return res.status(404).json({ message: "No transactions found" });
+    }
+    res.status(200).json({
+      message: "Transactions fetched successfully",
+      transaction: transactions,
+    });
+  } catch (error) {
+    console.error("Error fetching transactions:", error);
+    res.status(500).json({ message: "Server error" });
+  }
+});
 
 module.exports = router;

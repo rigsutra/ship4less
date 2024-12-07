@@ -2,18 +2,37 @@ import React, { useState, useEffect } from "react";
 import { useSelector } from "react-redux";
 import axios from "axios";
 import { useLocation } from "react-router-dom";
+import {
+  Box,
+  Heading,
+  Text,
+  Spinner,
+  Input,
+  Select,
+  Button,
+  Table,
+  Thead,
+  Tbody,
+  Tr,
+  Th,
+  Td,
+  Flex,
+  Tooltip,
+} from "@chakra-ui/react";
+import { CopyIcon } from "@chakra-ui/icons";
 import TopBar from "../../components/layout/TopBar";
 
 const Wallet = () => {
   const [balance, setBalance] = useState(0);
   const [transactions, setTransactions] = useState([]);
   const [amount, setAmount] = useState("");
-  const [currency, setCurrency] = useState("$"); // Default currency
-  const [currencies, setCurrencies] = useState([]); // List of available currencies
+  const [payCurrency, setPayCurrency] = useState(""); // Payment cryptocurrency
+  const [currencies, setCurrencies] = useState([]);
+  const [estimatedAmount, setEstimatedAmount] = useState(null);
+  const [loadingEstimate, setLoadingEstimate] = useState(false);
   const [loading, setLoading] = useState(false);
   const [loadingBalance, setLoadingBalance] = useState(false);
   const [loadingTransactions, setLoadingTransactions] = useState(false);
-  const [loadingCurrencies, setLoadingCurrencies] = useState(false);
   const [error, setError] = useState(null);
 
   const { token } = useSelector((state) => state.auth);
@@ -23,7 +42,6 @@ const Wallet = () => {
   const allowedCurrencies = [
     { name: "USDT (TRC20)", code: "TRX" },
     { name: "USDT (BEP20)", code: "BEP" },
-    { name: "USDT (BSC20)", code: "BSC" },
     { name: "BTC", code: "BTC" },
     { name: "LTC", code: "LTC" },
     { name: "ETH", code: "ETH" },
@@ -33,6 +51,7 @@ const Wallet = () => {
     fetchBalance();
     fetchTransactions();
     setCurrencies(allowedCurrencies);
+    setPayCurrency(allowedCurrencies[0].code); // Set default to first allowed currency
 
     const params = new URLSearchParams(location.search);
     const paymentStatus = params.get("payment");
@@ -41,17 +60,6 @@ const Wallet = () => {
       fetchBalance();
       fetchTransactions();
     }
-
-    const handleFocus = () => {
-      fetchBalance();
-      fetchTransactions();
-    };
-
-    window.addEventListener("focus", handleFocus);
-
-    return () => {
-      window.removeEventListener("focus", handleFocus);
-    };
   }, [location]);
 
   const fetchBalance = async () => {
@@ -63,7 +71,7 @@ const Wallet = () => {
       setBalance(response.data.balance);
     } catch (error) {
       console.error("Error fetching balance:", error);
-      setError("Failed to fetch balance");
+      setError("Failed to fetch balance.");
     } finally {
       setLoadingBalance(false);
     }
@@ -72,25 +80,67 @@ const Wallet = () => {
   const fetchTransactions = async () => {
     try {
       setLoadingTransactions(true);
-      const response = await axios.get(
-        `${baseUrl}/api/transactions?currency=${currency}`,
-        {
-          headers: { Authorization: `Bearer ${token}` },
-        }
-      );
+      const response = await axios.get(`${baseUrl}/api/transactions`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
       setTransactions(response.data.transactions || []);
+      console.log("Transactions fetched:", response.data.transactions);
     } catch (error) {
       console.error("Error fetching transactions:", error);
-      setError("Failed to fetch transactions");
+      setError("Failed to fetch transactions.");
     } finally {
       setLoadingTransactions(false);
     }
   };
 
+  const handleEstimate = async () => {
+    const amountNumber = parseFloat(amount);
+    if (isNaN(amountNumber) || amountNumber < 15) {
+      setError("Please enter a valid amount greater than or equal to 15.");
+      return;
+    }
+
+    if (!payCurrency) {
+      setError("Please select a payment currency.");
+      return;
+    }
+
+    try {
+      setLoadingEstimate(true);
+      const response = await axios.get(`${baseUrl}/api/estimate`, {
+        params: {
+          amount: amountNumber,
+          currency: "USD", // Fixed currency
+          payCurrency,
+        },
+        headers: { Authorization: `Bearer ${token}` },
+      });
+
+      if (response.data.estimatedAmount) {
+        setEstimatedAmount(response.data.estimatedAmount);
+        setError(null); // Clear previous errors
+      } else {
+        setError("Unexpected response from the server.");
+      }
+    } catch (error) {
+      console.error("Error fetching estimate:", error);
+      const errorMessage =
+        error.response?.data?.error || "Failed to get cryptocurrency estimate.";
+      setError(errorMessage);
+    } finally {
+      setLoadingEstimate(false);
+    }
+  };
+
   const handleAddBalance = async () => {
     const amountNumber = parseFloat(amount);
-    if (isNaN(amountNumber) || amountNumber <= 0) {
-      alert("Please enter a valid amount greater than 11");
+    if (isNaN(amountNumber) || amountNumber < 15) {
+      setError("Please enter a valid amount greater than or equal to 15.");
+      return;
+    }
+
+    if (!payCurrency) {
+      setError("Please select a payment currency.");
       return;
     }
 
@@ -98,142 +148,173 @@ const Wallet = () => {
       setLoading(true);
       const response = await axios.post(
         `${baseUrl}/api/create-payment`,
-        { amount: amountNumber, currency },
+        { amount: amountNumber, currency: "USD", payCurrency },
         { headers: { Authorization: `Bearer ${token}` } }
       );
 
       if (response.data.invoiceUrl) {
         window.location.href = response.data.invoiceUrl;
-      } else if (response.data.error) {
-        alert(`Error: ${response.data.error}`);
       } else {
-        alert("Failed to retrieve invoice URL");
+        setError("Failed to retrieve invoice URL.");
       }
     } catch (error) {
       console.error("Error creating payment:", error);
-      alert("Failed to create payment");
+      const errorMessage =
+        error.response?.data?.error || "Failed to create payment.";
+      setError(errorMessage);
     } finally {
       setLoading(false);
     }
   };
 
-  const handleAmountChange = (e) => {
-    const value = e.target.value;
-    if (value === "" || (Number(value) > 0 && /^\d*\.?\d*$/.test(value))) {
-      setAmount(value);
-    }
-  };
-
-  const handleCurrencyChange = (e) => {
-    setCurrency(e.target.value);
-    fetchBalance();
-    fetchTransactions();
+  const handleCopy = (fieldName, value) => {
+    const textToCopy = `${fieldName}: ${value}`;
+    navigator.clipboard.writeText(textToCopy).then(() => {
+      alert(`${fieldName} copied to clipboard.`);
+    });
   };
 
   return (
-    <div className="min-h-screen ">
-      <TopBar title={"Deposits"} />
-      <div className="flex justify-center items-center py-12 px-4 sm:px-6 lg:px-8">
-        <div className="max-w-3xl w-full bg-white shadow-xl rounded-lg p-8 space-y-8">
-          <h1 className="text-2xl font-semibold text-center text-gray-800">
+    <Box minH="100vh" bg="gray.50">
+      <TopBar title="Wallet" />
+      <Flex justify="center" align="center" py={12} px={4}>
+        <Box maxW="3xl" w="full" bg="white" shadow="xl" rounded="lg" p={8}>
+          <Heading size="lg" mb={6} textAlign="center">
             Wallet
-          </h1>
+          </Heading>
 
           {error && (
-            <div className="text-red-600 bg-red-100 border border-red-400 rounded-lg p-3">
+            <Text color="red.600" mb={4} textAlign="center">
               {error}
-            </div>
+            </Text>
           )}
 
-          {/* Wallet Balance Section */}
-          <div className="mb-6">
+          <Box mb={8}>
+            <Text fontSize="lg" fontWeight="medium" mb={2}>
+              Current Balance:
+            </Text>
             {loadingBalance ? (
-              <div className="text-gray-600">Loading balance...</div>
+              <Spinner />
             ) : (
-              <div className="text-lg font-bold text-gray-800 text-center">
-                Current Balance:{" "}
-                <span className="font-semibold text-green-600">${balance}</span>
-              </div>
+              <Text fontSize="xl" fontWeight="bold">
+                ${balance.toFixed(2)}
+              </Text>
             )}
-          </div>
+          </Box>
 
-          {/* Add Balance Section */}
-          <div className="bg-white shadow-sm rounded-lg p-6">
-            <h3 className="text-xl font-medium text-gray-700 mb-4">
-              Add Balance
-            </h3>
-            <div className="space-y-4">
-              <input
-                type="number"
-                value={amount}
-                onChange={handleAmountChange}
-                placeholder="Enter amount"
-                className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring focus:ring-blue-500"
-              />
-              <select
-                value={currency}
-                onChange={handleCurrencyChange}
-                className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring focus:ring-blue-500"
-              >
-                {allowedCurrencies.map((cur, index) => (
-                  <option key={index} value={cur.code}>
-                    {cur.name}
-                  </option>
-                ))}
-              </select>
-              <button
-                onClick={handleAddBalance}
-                disabled={loading}
-                className={`w-full py-2 text-white rounded-md ${
-                  loading
-                    ? "bg-gray-400 cursor-not-allowed"
-                    : "bg-blue-600 hover:bg-blue-700"
-                }`}
-              >
-                {loading ? "Processing..." : "Add Balance"}
-              </button>
-            </div>
-          </div>
+          <Box mb={8}>
+            <Text fontSize="lg" fontWeight="medium" mb={2}>
+              Add Balance:
+            </Text>
+            <Input
+              type="number"
+              value={amount}
+              onChange={(e) => setAmount(e.target.value)}
+              placeholder="Enter amount in USD (min 15)"
+              mb={4}
+              min={15}
+            />
+            <Select
+              value={payCurrency}
+              onChange={(e) => setPayCurrency(e.target.value)}
+              mb={4}
+            >
+              {allowedCurrencies.map((cur) => (
+                <option key={cur.code} value={cur.code}>
+                  {cur.name}
+                </option>
+              ))}
+            </Select>
+            <Button
+              onClick={handleEstimate}
+              colorScheme="blue"
+              w="full"
+              mb={4}
+              isLoading={loadingEstimate}
+            >
+              Get Estimate
+            </Button>
+            {estimatedAmount && (
+              <Text mb={4}>
+                Estimated Amount: {estimatedAmount} {payCurrency}
+              </Text>
+            )}
+            <Button
+              onClick={handleAddBalance}
+              colorScheme="green"
+              w="full"
+              isLoading={loading}
+            >
+              Proceed to Payment
+            </Button>
+          </Box>
 
-          {/* Transaction History Section */}
-          <div className="bg-white shadow-sm rounded-lg p-6">
-            <h3 className="text-xl font-medium text-gray-700 mb-4">
-              Transaction History
-            </h3>
+          <Box>
+            <Text fontSize="lg" fontWeight="medium" mb={2}>
+              Recent Transactions:
+            </Text>
             {loadingTransactions ? (
-              <div className="text-gray-600">Loading transactions...</div>
+              <Spinner />
             ) : transactions.length > 0 ? (
-              <ul className="space-y-4">
-                {transactions.map((tx, index) => (
-                  <li
-                    key={index}
-                    className="flex justify-between items-center border-b pb-3"
-                  >
-                    <span className="text-gray-600">
-                      {new Date(tx.createdAt).toLocaleString()}
-                    </span>
-                    <span className="text-gray-800 font-medium">
-                      {tx.amount} {tx.currency}
-                    </span>
-                    <span
-                      className={`text-sm font-medium ${
+              <Box overflowX="auto">
+                <Table variant="simple">
+                  <Thead bg="gray.100">
+                    <Tr>
+                      <Th>Payment ID</Th>
+                      <Th>Date and Time</Th>
+                      <Th>Amount</Th>
+                      <Th>Status</Th>
+                      <Th>Copy</Th>
+                    </Tr>
+                  </Thead>
+                  <Tbody>
+                    {transactions.map((tx) => {
+                      let statusColor = "gray.700";
+                      if (
+                        tx.status === "Completed" ||
                         tx.status === "success"
-                          ? "text-green-600"
-                          : "text-red-600"
-                      }`}
-                    >
-                      {tx.status}
-                    </span>
-                  </li>
-                ))}
-              </ul>
+                      ) {
+                        statusColor = "green.500";
+                      } else if (tx.status === "Pending") {
+                        statusColor = "red.500";
+                      }
+
+                      return (
+                        <Tr key={tx._id}>
+                          <Td>{tx.paymentId || tx._id}</Td>
+                          <Td>{new Date(tx.createdAt).toLocaleString()}</Td>
+                          <Td>${tx.amount}</Td>
+                          <Td>
+                            <Text color={statusColor}>{tx.status}</Text>
+                          </Td>
+                          <Td>
+                            <Tooltip label="Copy Payment ID">
+                              <Button
+                                size="sm"
+                                onClick={() =>
+                                  handleCopy(
+                                    "Payment ID",
+                                    tx.paymentId || tx._id
+                                  )
+                                }
+                              >
+                                <CopyIcon />
+                              </Button>
+                            </Tooltip>
+                          </Td>
+                        </Tr>
+                      );
+                    })}
+                  </Tbody>
+                </Table>
+              </Box>
             ) : (
-              <div className="text-gray-600">No transactions found</div>
+              <Text>No transactions found.</Text>
             )}
-          </div>
-        </div>
-      </div>
-    </div>
+          </Box>
+        </Box>
+      </Flex>
+    </Box>
   );
 };
 

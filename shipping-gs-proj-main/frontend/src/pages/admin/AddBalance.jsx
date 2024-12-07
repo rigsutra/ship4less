@@ -1,12 +1,13 @@
-import React, { useState } from "react";
+import { useState } from "react";
+import { useSelector } from "react-redux";
 import axios from "axios";
-
 
 const baseUrl = import.meta.env.VITE_BASE_URL;
 const AddBalance = () => {
   const [userId, setUserId] = useState("");
   const [amount, setAmount] = useState("");
   const [message, setMessage] = useState("");
+  const [transaction, setTransaction] = useState([]);
   const [error, setError] = useState("");
   const { token } = useSelector((state) => state.auth);
   const handleSubmit = async (e) => {
@@ -25,14 +26,28 @@ const AddBalance = () => {
         { userId, amount: Number(amount) },
         {
           headers: {
-            Authorization: `Bearer ${token}`, // Pass the JWT token for authentication
+            Authorization: `Bearer ${token}`,
           },
         }
       );
 
-      setMessage(response.data.message);
+      setTransaction({
+        amount: response.data.transaction.amount,
+        createdAt: response.data.transaction.createdAt,
+        type: response.data.transaction.type,
+      });
+      console.log(transaction);
+
+      setMessage(
+        `Successfully added $${response.data.transaction.amount}. New balance: $${response.data.balance}`
+      );
+
+      setUserId("");
+      setAmount("");
     } catch (err) {
-      setError(err.response?.data?.message || "An error occurred while adding balance.");
+      setError(
+        err.response?.data?.message || "An error occurred while adding balance."
+      );
     }
   };
 

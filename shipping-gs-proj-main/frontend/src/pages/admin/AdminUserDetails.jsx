@@ -10,7 +10,6 @@ import {
   Box,
   Spinner,
   Input,
-  HStack,
   VStack,
   Button,
   useDisclosure,
@@ -129,7 +128,7 @@ function UserTable() {
         duration: 5000,
         isClosable: true,
       });
-      
+
       setBalanceAmount(0);
       setSelectedUser(null);
       onClose();
@@ -171,7 +170,12 @@ function UserTable() {
         {loading ? (
           <Spinner size="xl" />
         ) : (
-          <TableContainer border="1px solid" borderColor="gray.200" borderRadius="md" bg="white">
+          <TableContainer
+            border="1px solid"
+            borderColor="gray.200"
+            borderRadius="md"
+            bg="white"
+          >
             <Table variant="simple">
               <Thead bg="gray.100">
                 <Tr>
@@ -221,7 +225,9 @@ function UserTable() {
                 <p>Adding balance for: {selectedUser?.name}</p>
                 <NumberInput
                   value={balanceAmount}
-                  onChange={(valueString) => setBalanceAmount(Number(valueString))}
+                  onChange={(valueString) =>
+                    setBalanceAmount(Number(valueString))
+                  }
                   min={0}
                 >
                   <NumberInputField placeholder="Enter amount" />
